@@ -1,0 +1,26 @@
+hy3parser
+Parser for Hy-Tek Meet Manager meet files. Mainly used for .hy3 files.
+
+The HY3 file format is used by HyTek Meet Manager software, which is extensively used in organizing swimming competitions. This format encapsulates data pertaining to events, participants, and results in a text-based file that features distinct record types identifiable by specific prefixes. Below is a technical breakdown of the key components relevant to parsing and processing HY3 files within the application:
+
+File Structure
+HY3 files are composed of lines, each beginning with a two-character prefix that indicates the type of data contained in that line. The structure includes multiple sections for events, athletes, and results. Each section has a defined format with fixed-width fields, making it suitable for regex-based parsing.
+
+C1 - Event Entries:
+Fields include meet codes, event types, subtypes, strokes (using FINA stroke codes), distances, gender, age ranges, and event dates.
+Example: C10103000501M08081011/25/2023 could be deciphered as an event (code 0103) for a 100-meter male freestyle for ages 8-10 on November 25, 2023.
+
+D3 - Participant Entries:
+Includes unique entry and swimmer IDs, names padded to a fixed length, team codes, seed and final times in MM
+.hh format, and a status code indicating the result or participation status.
+Example: D3000123456789John Doe ABC Swim 01:00.5001:00.25A denotes participant John Doe, with an entry ID of 123456789, from ABC Swim team, seeded at 1 minute 0.50 seconds and finishing at 1 minute 0.25 seconds.
+
+Parsing Mechanics
+
+Regex Patterns:
+Given the fixed format of HY3 lines, regex is used to extract structured data. Each line type has an associated regex pattern that describes how to parse the line into its constituent fields.
+For C1 lines, a pattern like r'^C1(\d{2})(\d{4})(\d{4})(.*)(\d{1})(\d{1})(\d{1})(\d{1})(\d{2}\/\d{2}\/\d{4})$' might be used, which extracts meet code, event type, subtype, stroke, distance, gender, age range, and date, respectively.
+For D3 lines, the pattern r'^D3(\d{4})(\d{4})(.*)([A-Z]{2})(\d{2}:\d{2}.\d{2})(\d{2}:\d{2}.\d{2})([A-Z]+)$' captures the entry ID, swimmer ID, name, team, seed time, final time, and status.
+
+Thread-Safe Database Operations:
+After parsing, data is often handled in bulk operations, necessitating thread-safe transactions. Python’s ThreadPoolExecutor is employed to process parsed data in parallel without interfering with the Flask application’s main execution thread or database session conflicts.
